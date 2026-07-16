@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BarChart3, Bell, BookOpen, ChevronDown, CircleHelp, Crown, Download, FileSearch, FolderKanban, HelpCircle, Info, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, ShieldCheck, Sparkles, Sun, UserRound, X } from "lucide-react";
 import { incidents, knowledgeArticles } from "@/lib/data";
 import { downloadText } from "@/lib/download";
@@ -26,10 +26,12 @@ export function Platform() {
   const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [unread, setUnread] = useState(3);
   const [toast, setToast] = useState("");
   const [user, setUser] = useState<UserSession | null>(null);
   const [plan, setPlan] = useState<Plan>("Community");
+  const searchInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("sme-theme");
@@ -50,6 +52,25 @@ export function Platform() {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const isTyping = target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable;
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInput.current?.focus();
+      }
+      if (event.key === "Escape") {
+        setSearch("");
+        setNotificationsOpen(false);
+        setNavOpen(false);
+        if (!isTyping) searchInput.current?.blur();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const searchResults = useMemo(() => {
     if (search.trim().length < 2) return [];
     const term = search.toLowerCase();
@@ -60,7 +81,12 @@ export function Platform() {
   }, [search]);
 
   function notify(message: string) { setToast(message); }
-  function navigate(next: View) { setView(next); setSearch(""); setNotificationsOpen(false); }
+  function navigate(next: View) {
+    setView(next);
+    setSearch("");
+    setNotificationsOpen(false);
+    setNavOpen(false);
+  }
   function toggleTheme() {
     setDark(value => {
       const next = !value;
@@ -82,7 +108,7 @@ export function Platform() {
   }
   function selectPlan(nextPlan: Plan) {
     if (nextPlan === "Organization") {
-      downloadText("organization-plan-request.txt", "Scam Message Explainer — Organization plan inquiry\n\nThank you for your interest. Add your organization, team size, and integration needs before sending this request to sales@example.com.");
+      downloadText("organization-plan-request.txt", "Scam Message Explainer - Organization plan inquiry\n\nThank you for your interest. Add your organization, team size, and integration needs before sending this request to sales@example.com.");
       notify("Organization inquiry template downloaded.");
       return;
     }
@@ -93,9 +119,9 @@ export function Platform() {
 
   return (
     <>
-      <div className="mobile-unavailable"><div className="brand-mark"><ShieldCheck size={25} /></div><h1>Scam Message Explainer</h1><p>This security workspace is currently available on desktop. Mobile support is planned for a future release.</p></div>
+      {navOpen ? <button className="nav-scrim" aria-label="Close navigation" onClick={() => setNavOpen(false)} /> : null}
       <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
-        <aside className="sidebar">
+        <aside className={`sidebar ${navOpen ? "open" : ""}`}>
           <button className="brand" onClick={() => navigate("overview")}><div className="brand-mark"><ShieldCheck size={25} /></div><span>Scam Message<br />Explainer</span></button>
           <nav>{nav.map(([id, Icon, label]) => <button title={label} className={view === id ? "active" : ""} onClick={() => navigate(id)} key={id}><Icon size={18} /><span>{label}</span></button>)}</nav>
           <div className="sidebar-links"><button title="Product guide" className={view === "about" ? "active" : ""} onClick={() => navigate("about")}><Info size={18} /><span>Product guide</span></button><button title="Premium" className={view === "pricing" ? "active premium-link" : "premium-link"} onClick={() => navigate("pricing")}><Crown size={18} /><span>Premium</span></button></div>
@@ -106,8 +132,8 @@ export function Platform() {
         </aside>
         <div className="app-body">
           <header className="topbar">
-            <button className="menu-button"><Menu size={21} /></button>
-            <div className="global-search"><Search size={17} /><input aria-label="Global search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search incidents, messages, guides…" /><kbd>⌘ K</kbd>{searchResults.length > 0 ? <div className="search-results">{searchResults.map((result, index) => <button key={`${result.title}-${index}`} onClick={() => navigate(result.view)}><Search size={14} /><span><strong>{result.title}</strong><small>{result.detail}</small></span></button>)}</div> : null}</div>
+            <button className="menu-button" aria-label="Open navigation" aria-expanded={navOpen} onClick={() => setNavOpen(true)}><Menu size={21} /></button>
+            <div className="global-search"><Search size={17} /><input ref={searchInput} aria-label="Global search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search incidents, messages, guides..." /><kbd>Ctrl K</kbd>{searchResults.length > 0 ? <div className="search-results">{searchResults.map((result, index) => <button key={`${result.title}-${index}`} onClick={() => navigate(result.view)}><Search size={14} /><span><strong>{result.title}</strong><small>{result.detail}</small></span></button>)}</div> : null}</div>
             <div className="top-actions">
               <button onClick={toggleTheme} aria-label={`Switch to ${dark ? "light" : "dark"} theme`}>{dark ? <Sun size={18} /> : <Moon size={18} />}</button>
               <button aria-label="Product help" onClick={() => navigate("about")}><HelpCircle size={18} /></button>

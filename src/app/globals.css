@@ -127,7 +127,10 @@ td strong, td small { display: block; } td strong { color: var(--blue); font-siz
 .submission-panel { padding: 20px; }.source-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: -3px 0 20px; overflow-x: auto; }.source-tabs button { border: 0; background: none; padding: 9px 13px 12px; color: var(--muted); font-size: 11px; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }.source-tabs button.active { color: var(--blue); border-color: var(--blue); font-weight: 650; }
 .input-label { font-weight: 650; font-size: 12px; display: block; margin-bottom: 9px; }.textarea-wrap { border: 1px solid var(--border); border-radius: 9px; overflow: hidden; transition: border .15s; }.textarea-wrap:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgb(19 94 242 / .1); }.textarea-wrap textarea { resize: vertical; border: 0; outline: 0; width: 100%; min-height: 250px; background: var(--surface); color: var(--text); padding: 16px; line-height: 1.65; font-size: 13px; }.textarea-wrap>span { display: block; border-top: 1px solid var(--border); text-align: right; padding: 7px 10px; color: var(--muted); font-size: 9px; background: var(--surface-2); }
 .form-error { color: var(--red); display: flex; gap: 6px; align-items: center; font-size: 11px; margin: 8px 0 0; }
-.upload-row { display: flex; align-items: center; justify-content: space-between; border: 1px dashed var(--border); border-radius: 9px; padding: 12px 14px; margin-top: 14px; }.upload { display: flex; gap: 10px; align-items: center; background: none; border: 0; color: var(--blue); text-align: left; cursor: pointer; }.upload span strong { display: block; color: var(--text); font-size: 11px; }.upload small { color: var(--muted); font-size: 9px; }.supported { color: var(--muted); display: flex; gap: 10px; }
+.upload-row { display: flex; align-items: center; justify-content: space-between; border: 1px dashed var(--border); border-radius: 9px; padding: 12px 14px; margin-top: 14px; gap: 10px; }.upload { display: flex; gap: 10px; align-items: center; background: none; border: 0; color: var(--blue); text-align: left; cursor: pointer; min-width: 0; }.upload span { min-width: 0; }.upload span strong { display: block; color: var(--text); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.upload small { color: var(--muted); font-size: 9px; }.supported { color: var(--muted); display: flex; gap: 10px; }
+.remove-evidence { width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--muted); display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; }
+.remove-evidence:hover { color: var(--red); border-color: #ffc2c6; background: color-mix(in srgb,var(--red) 6%,var(--surface)); }
+.evidence-note { margin: 9px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .submit-row { display: flex; justify-content: space-between; margin-top: 18px; gap: 10px; }.analyze-button { min-width: 150px; }.analyze-button:disabled { opacity: .7; cursor: wait; }.spin { animation: spin 1s linear infinite; }@keyframes spin { to { transform: rotate(360deg); } }
 .scan-progress { margin-top: 14px; background: var(--surface-2); border-radius: 8px; overflow: hidden; padding: 12px; position: relative; color: var(--muted); font-size: 10px; }.scan-progress i { position: absolute; top: 0; left: 0; height: 2px; width: 40%; background: var(--blue); animation: scan 1.4s ease-in-out infinite; }
 .analysis-aside { padding: 12px 5px; }.analysis-aside h2 { font-size: 15px; margin: 0 0 7px; }.analysis-aside>p { color: var(--muted); font-size: 11px; line-height: 1.55; margin: 0 0 18px; }.inspect-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); color: var(--blue); }.inspect-item strong,.inspect-item small { display: block; }.inspect-item strong { color: var(--text); font-size: 11px; margin-bottom: 4px; }.inspect-item small { color: var(--muted); font-size: 9px; }
@@ -163,12 +166,41 @@ td strong, td small { display: block; } td strong { color: var(--blue); font-siz
   .view { padding:23px 18px 35px; }.analysis-layout { grid-template-columns:1fr; }.analysis-aside { padding:10px; }.response-grid { grid-template-columns:1fr; }.report-hero { grid-template-columns:100px 1fr;padding:20px; }.score-ring.large { width:90px;height:90px; }.score-ring.large::before { width:68px;height:68px; }.score-ring strong { font-size:24px; }.article-grid { grid-template-columns:1fr 1fr; }.filters { overflow-x:auto; }.filters label { min-width:250px; }.filters .ghost { white-space:nowrap; }
 }
 @media (max-width: 560px) {
-  body { background:var(--sidebar); }
-  .app-shell { display:none; }
-  .mobile-unavailable { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:36px; text-align:center; color:#fff; background:radial-gradient(circle at 50% 25%,#173464 0,var(--sidebar) 43%); }
-  .mobile-unavailable .brand-mark { width:52px; height:52px; margin-bottom:22px; }
-  .mobile-unavailable h1 { margin:0 0 10px; font-size:23px; letter-spacing:-.025em; }
-  .mobile-unavailable p { max-width:320px; margin:0; color:#9fb0c8; font-size:13px; line-height:1.65; }
+  body { background:var(--bg); }
+  .topbar { height:auto; min-height:62px; gap:8px; padding:10px 12px; align-items:center; }
+  .global-search { flex:1; width:auto; min-width:0; padding:8px; }
+  .global-search input { font-size:11px; }
+  .top-actions { gap:3px; }
+  .top-actions button:not(.account-button), .menu-button { width:33px; height:33px; }
+  .top-actions .account-button { width:33px; padding:0; border:0; }
+  .top-actions .account-button span:not(.avatar) { display:none; }
+  .view { padding:18px 13px 30px; }
+  .view-heading,.analysis-heading,.report-toolbar { align-items:flex-start; flex-direction:column; gap:12px; }
+  .view-heading h1,.analysis-heading h1 { font-size:22px; }
+  .metrics { grid-template-columns:1fr; }
+  .metric { padding:15px; }
+  .metric::after { display:none; }
+  .metric:not(:last-child) { border-bottom:1px solid var(--border); }
+  .dashboard-grid,.analysis-layout,.report-grid,.guide-body,.guide-hero,.security-principles,.pricing-grid,.auth-layout { grid-template-columns:1fr; }
+  .distribution { flex-direction:column; gap:18px; padding:18px; }
+  .article-grid,.workflow-grid,.capability-band { grid-template-columns:1fr; }
+  .guide-hero,.auth-message { padding:28px 22px; }
+  .guide-hero h1 { font-size:28px; }
+  .report-hero { grid-template-columns:1fr; gap:16px; }
+  .report-verdict { grid-column:auto; }
+  .report-tabs { gap:14px; overflow-x:auto; }
+  .report-tabs button { white-space:nowrap; }
+  .finding { grid-template-columns:30px 1fr; }
+  .finding>b { grid-column:2; }
+  .risk-total,.breakdown-row { grid-template-columns:105px 1fr 32px; }
+  .submit-row,.upload-row { flex-direction:column; align-items:stretch; }
+  .supported { justify-content:flex-start; }
+  .filters { flex-wrap:nowrap; padding-bottom:5px; }
+  .notifications { width:calc(100vw - 24px); right:-46px; }
+  .toast { left:12px; right:12px; bottom:12px; max-width:none; }
+  .incident-detail { width:100%; padding:28px 22px; }
+  .account-view { place-items:start; }
+  .auth-form { padding:26px 22px; }
 }
 @media print {
   .sidebar,.topbar,.report-toolbar,.report-tabs { display:none !important; }.app-body { margin:0; }.view { max-width:none;padding:0; }.report-hero,.panel { break-inside:avoid;box-shadow:none; }.report-grid { grid-template-columns:1fr; }
@@ -217,6 +249,7 @@ td strong, td small { display: block; } td strong { color: var(--blue); font-siz
 .dark .toast { background:#12342f; border-color:#285d53; color:#67dec4; }
 
 .filters select { border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:8px; padding:8px 30px 8px 11px; font-size:11px; cursor:pointer; }
+.filters .active-filter { border-color:#9ab8fa; color:var(--blue); background:color-mix(in srgb,var(--blue) 7%,var(--surface)); }
 .incident-register .bookmarked { color:var(--blue); }
 .empty-table { padding:45px; text-align:center; color:var(--muted); font-size:11px; }
 .detail-scrim { position:fixed; inset:0; z-index:90; background:rgb(5 13 25 / .46); display:flex; justify-content:flex-end; backdrop-filter:blur(2px); }

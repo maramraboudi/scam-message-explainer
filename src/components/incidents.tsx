@@ -1,6 +1,6 @@
 "use client";
-import { useMemo, useState } from "react";
-import { Bookmark, BookmarkCheck, Download, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Bookmark, BookmarkCheck, Download, Filter, Search, X } from "lucide-react";
 import { incidents } from "@/lib/data";
 import { downloadText, toCsv } from "@/lib/download";
 import { Panel, Status } from "./ui";
@@ -9,13 +9,37 @@ export function Incidents({ notify }: { notify: (message: string) => void }) {
   const [query, setQuery] = useState("");
   const [risk, setRisk] = useState("All");
   const [source, setSource] = useState("All");
-  const [bookmarks, setBookmarks] = useState<Set<string>>(() => new Set());
+  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
+  const [bookmarksLoaded, setBookmarksLoaded] = useState(false);
+  const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [selected, setSelected] = useState<(typeof incidents)[number] | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sme-bookmarks-v1");
+    if (!saved) {
+      setBookmarksLoaded(true);
+      return;
+    }
+    try {
+      setBookmarks(new Set(JSON.parse(saved) as string[]));
+    } catch {
+      localStorage.removeItem("sme-bookmarks-v1");
+    } finally {
+      setBookmarksLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!bookmarksLoaded) return;
+    localStorage.setItem("sme-bookmarks-v1", JSON.stringify([...bookmarks]));
+  }, [bookmarks, bookmarksLoaded]);
+
   const filtered = useMemo(() => incidents.filter(item => {
     const matchesQuery = `${item.id} ${item.title} ${item.source} ${item.category}`.toLowerCase().includes(query.toLowerCase());
     const matchesRisk = risk === "All" || (risk === "Critical" ? item.risk >= 85 : risk === "High" ? item.risk >= 70 && item.risk < 85 : item.risk < 70);
-    return matchesQuery && matchesRisk && (source === "All" || item.source === source);
-  }), [query, risk, source]);
+    const matchesBookmark = !bookmarkedOnly || bookmarks.has(item.id);
+    return matchesQuery && matchesRisk && matchesBookmark && (source === "All" || item.source === source);
+  }), [bookmarkedOnly, bookmarks, query, risk, source]);
 
   function toggleBookmark(id: string) {
     setBookmarks(current => {
@@ -34,10 +58,11 @@ export function Incidents({ notify }: { notify: (message: string) => void }) {
     <div className="view animate-fade-up">
       <div className="view-heading"><div><h1>Investigations</h1><p>Review, prioritize, and resolve submitted security incidents.</p></div><button className="ghost" onClick={exportRegister}><Download size={16} />Export register</button></div>
       <div className="filters">
-        <label><Search size={17} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search incidents, senders, categories…" /></label>
+        <label><Search size={17} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search incidents, senders, categories..." /></label>
         <select value={risk} onChange={event => setRisk(event.target.value)} aria-label="Filter risk"><option>All</option><option>Critical</option><option>High</option><option>Medium</option></select>
         <select value={source} onChange={event => setSource(event.target.value)} aria-label="Filter source"><option>All</option>{[...new Set(incidents.map(item => item.source))].map(item => <option key={item}>{item}</option>)}</select>
-        <button className="ghost" onClick={() => { setQuery(""); setRisk("All"); setSource("All"); }}>Clear filters</button>
+        <button className={`ghost ${bookmarkedOnly ? "active-filter" : ""}`} onClick={() => setBookmarkedOnly(value => !value)}><BookmarkCheck size={15} />Saved only</button>
+        <button className="ghost" onClick={() => { setQuery(""); setRisk("All"); setSource("All"); setBookmarkedOnly(false); }}><Filter size={15} />Clear filters</button>
       </div>
       <Panel className="incident-register">
         <div className="register-header"><span>Showing {filtered.length} of {incidents.length} incidents</span><div><i />Live intelligence enabled</div></div>
@@ -46,7 +71,7 @@ export function Incidents({ notify }: { notify: (message: string) => void }) {
         </table></div>
         {filtered.length === 0 ? <div className="empty-table">No incidents match these filters.</div> : null}
       </Panel>
-      {selected ? <div className="detail-scrim" onClick={() => setSelected(null)}><aside className="incident-detail" onClick={event => event.stopPropagation()}><button className="detail-close" onClick={() => setSelected(null)}><X size={18} /></button><span className="detail-label">Incident investigation</span><h2>{selected.title}</h2><strong className="detail-id">{selected.id}</strong><div className="detail-score"><b>{selected.risk}</b><span>Risk score<br />{selected.risk >= 85 ? "Critical" : selected.risk >= 70 ? "High" : "Medium"} threat</span></div><dl><div><dt>Source</dt><dd>{selected.source}</dd></div><div><dt>Category</dt><dd>{selected.category}</dd></div><div><dt>Status</dt><dd><Status>{selected.status}</Status></dd></div><div><dt>Last updated</dt><dd>{selected.updated}</dd></div></dl><h3>Recommended next step</h3><p>Preserve the original message, verify the sender independently, and prevent interaction with any included link or attachment.</p><button className="primary" onClick={() => { toggleBookmark(selected.id); notify("Incident saved to bookmarks."); }}>Save investigation</button></aside></div> : null}
+      {selected ? <div className="detail-scrim" onClick={() => setSelected(null)}><aside className="incident-detail" onClick={event => event.stopPropagation()}><button className="detail-close" aria-label="Close incident details" onClick={() => setSelected(null)}><X size={18} /></button><span className="detail-label">Incident investigation</span><h2>{selected.title}</h2><strong className="detail-id">{selected.id}</strong><div className="detail-score"><b>{selected.risk}</b><span>Risk score<br />{selected.risk >= 85 ? "Critical" : selected.risk >= 70 ? "High" : "Medium"} threat</span></div><dl><div><dt>Source</dt><dd>{selected.source}</dd></div><div><dt>Category</dt><dd>{selected.category}</dd></div><div><dt>Status</dt><dd><Status>{selected.status}</Status></dd></div><div><dt>Last updated</dt><dd>{selected.updated}</dd></div></dl><h3>Recommended next step</h3><p>Preserve the original message, verify the sender independently, and prevent interaction with any included link or attachment.</p><button className={bookmarks.has(selected.id) ? "ghost" : "primary"} onClick={() => { if (!bookmarks.has(selected.id)) { toggleBookmark(selected.id); notify("Incident saved to bookmarks."); } }}>{bookmarks.has(selected.id) ? "Saved to bookmarks" : "Save investigation"}</button></aside></div> : null}
     </div>
   );
 }

@@ -36,7 +36,20 @@ export function Analyzer({ onBack, notify }: { onBack: () => void; notify: (mess
     }
   }
 
-  if (result) return <Report result={result} onReset={() => setResult(null)} tab={tab} setTab={setTab} notify={notify} />;
+  function loadDemo() {
+    setContent(demo);
+    setSource("Email");
+    setAttachment(null);
+    setError("");
+  }
+
+  function resetAnalysis() {
+    setResult(null);
+    setTab("overview");
+    setError("");
+  }
+
+  if (result) return <Report result={result} onReset={resetAnalysis} tab={tab} setTab={setTab} notify={notify} />;
 
   return (
     <div className="view analyzer-view animate-fade-up">
@@ -47,7 +60,7 @@ export function Analyzer({ onBack, notify }: { onBack: () => void; notify: (mess
           <div className="source-tabs" role="tablist">{["Email", "SMS", "WhatsApp", "Social", "URL", "Other"].map(item => <button role="tab" aria-selected={source === item} className={source === item ? "active" : ""} onClick={() => setSource(item)} key={item}>{item}</button>)}</div>
           <label className="input-label" htmlFor="message">Message content</label>
           <div className="textarea-wrap">
-            <textarea id="message" value={content} onChange={event => setContent(event.target.value.slice(0, 12000))} placeholder="Paste the suspicious message here, including any links, sender details, or context…" />
+            <textarea id="message" value={content} onChange={event => setContent(event.target.value.slice(0, 12000))} placeholder="Paste the suspicious message here, including any links, sender details, or context..." />
             <span>{content.length.toLocaleString()} / 12,000</span>
           </div>
           {error ? <p className="form-error"><AlertTriangle size={15} />{error}</p> : null}
@@ -62,11 +75,13 @@ export function Analyzer({ onBack, notify }: { onBack: () => void; notify: (mess
               setError("");
               setAttachment(file);
             }} />
-            <button className="upload" onClick={() => fileInput.current?.click()}><Upload size={18} /><span><strong>{attachment ? attachment.name : "Add evidence"}</strong><small>{attachment ? `${(attachment.size / 1024).toFixed(0)} KB · ready to attach` : "Screenshot, QR code, or PDF · max 10 MB"}</small></span></button>
+            <button className="upload" onClick={() => fileInput.current?.click()}><Upload size={18} /><span><strong>{attachment ? attachment.name : "Add evidence"}</strong><small>{attachment ? `${(attachment.size / 1024).toFixed(0)} KB - ready to attach` : "Screenshot, QR code, or PDF - max 10 MB"}</small></span></button>
+            {attachment ? <button className="remove-evidence" aria-label="Remove selected evidence" onClick={() => { setAttachment(null); if (fileInput.current) fileInput.current.value = ""; }}><X size={15} /></button> : null}
             <div className="supported"><FileImage size={17} /><FileText size={17} /><Link2 size={17} /></div>
           </div>
-          <div className="submit-row"><button className="ghost" onClick={() => setContent(demo)}><Sparkles size={16} />Load demo example</button><button className="primary analyze-button" onClick={analyze} disabled={loading}>{loading ? <><Loader2 className="spin" size={17} />Analyzing safely…</> : <><ShieldAlert size={17} />Analyze threat</>}</button></div>
-          {loading ? <div className="scan-progress"><i /><span>Inspecting language, URLs, identity cues, and manipulation patterns…</span></div> : null}
+          {attachment ? <p className="evidence-note">Evidence is attached for case context. The current local engine analyzes the pasted text and visible URLs.</p> : null}
+          <div className="submit-row"><button className="ghost" onClick={loadDemo}><Sparkles size={16} />Load demo example</button><button className="primary analyze-button" onClick={analyze} disabled={loading}>{loading ? <><Loader2 className="spin" size={17} />Analyzing safely...</> : <><ShieldAlert size={17} />Analyze threat</>}</button></div>
+          {loading ? <div className="scan-progress"><i /><span>Inspecting language, URLs, identity cues, and manipulation patterns...</span></div> : null}
         </Panel>
         <aside className="analysis-aside">
           <h2>What we inspect</h2>
