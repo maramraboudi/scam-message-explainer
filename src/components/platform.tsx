@@ -13,11 +13,11 @@ import { Pricing, type Plan } from "./pricing";
 
 type View = "overview" | "analyze" | "incidents" | "knowledge" | "reports" | "about" | "pricing" | "account";
 const nav = [
-  ["overview", BarChart3, "Overview"],
-  ["analyze", FileSearch, "New analysis"],
-  ["incidents", FolderKanban, "Incidents"],
-  ["knowledge", BookOpen, "Knowledge base"],
-  ["reports", ShieldCheck, "Reports"]
+  ["overview", BarChart3, "Command center"],
+  ["analyze", FileSearch, "Triage desk"],
+  ["incidents", FolderKanban, "Case queue"],
+  ["knowledge", BookOpen, "Field notes"],
+  ["reports", ShieldCheck, "Briefings"]
 ] as const;
 
 export function Platform() {
@@ -75,8 +75,8 @@ export function Platform() {
     if (search.trim().length < 2) return [];
     const term = search.toLowerCase();
     return [
-      ...incidents.filter(item => `${item.id} ${item.title} ${item.category}`.toLowerCase().includes(term)).slice(0, 3).map(item => ({ title: item.title, detail: item.id, view: "incidents" as View })),
-      ...knowledgeArticles.filter(item => item.join(" ").toLowerCase().includes(term)).slice(0, 3).map(item => ({ title: item[0], detail: "Knowledge guide", view: "knowledge" as View }))
+      ...incidents.filter(item => `${item.id} ${item.title} ${item.sender} ${item.category}`.toLowerCase().includes(term)).slice(0, 3).map(item => ({ title: item.title, detail: item.id, view: "incidents" as View })),
+      ...knowledgeArticles.filter(item => item.join(" ").toLowerCase().includes(term)).slice(0, 3).map(item => ({ title: item[0], detail: "Field note", view: "knowledge" as View }))
     ];
   }, [search]);
 
@@ -108,8 +108,8 @@ export function Platform() {
   }
   function selectPlan(nextPlan: Plan) {
     if (nextPlan === "Organization") {
-      downloadText("organization-plan-request.txt", "Scam Message Explainer - Organization plan inquiry\n\nThank you for your interest. Add your organization, team size, and integration needs before sending this request to sales@example.com.");
-      notify("Organization inquiry template downloaded.");
+      downloadText("signalproof-team-request.txt", "SignalProof - Team workspace inquiry\n\nAdd your organization, team size, case volume, and integration needs before sending this request to partnerships@signalproof.example.");
+      notify("Team workspace inquiry downloaded.");
       return;
     }
     setPlan(nextPlan);
@@ -122,22 +122,22 @@ export function Platform() {
       {navOpen ? <button className="nav-scrim" aria-label="Close navigation" onClick={() => setNavOpen(false)} /> : null}
       <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
         <aside className={`sidebar ${navOpen ? "open" : ""}`}>
-          <button className="brand" onClick={() => navigate("overview")}><div className="brand-mark"><ShieldCheck size={25} /></div><span>Scam Message<br />Explainer</span></button>
+          <button className="brand" onClick={() => navigate("overview")}><div className="brand-mark"><span className="brand-monogram">SP</span></div><span>SignalProof<br /><small>Trust desk</small></span></button>
           <nav>{nav.map(([id, Icon, label]) => <button title={label} className={view === id ? "active" : ""} onClick={() => navigate(id)} key={id}><Icon size={18} /><span>{label}</span></button>)}</nav>
-          <div className="sidebar-links"><button title="Product guide" className={view === "about" ? "active" : ""} onClick={() => navigate("about")}><Info size={18} /><span>Product guide</span></button><button title="Premium" className={view === "pricing" ? "active premium-link" : "premium-link"} onClick={() => navigate("pricing")}><Crown size={18} /><span>Premium</span></button></div>
+          <div className="sidebar-links"><button title="Product guide" className={view === "about" ? "active" : ""} onClick={() => navigate("about")}><Info size={18} /><span>Method</span></button><button title="Plans" className={view === "pricing" ? "active premium-link" : "premium-link"} onClick={() => navigate("pricing")}><Crown size={18} /><span>Plans</span></button></div>
           <div className="sidebar-bottom">
-            <button className="org" onClick={() => navigate("account")}><small>Workspace</small><span><i>{user ? user.name.slice(0, 2).toUpperCase() : "AS"}</i><b>{user?.name ?? "Acme Security"}</b><ChevronDown size={15} /></span></button>
+            <button className="org" onClick={() => navigate("account")}><small>Workspace</small><span><i>{user ? user.name.slice(0, 2).toUpperCase() : "NM"}</i><b>{user?.name ?? "Northstar Mutual"}</b><ChevronDown size={15} /></span></button>
             <button className="collapse" onClick={() => setCollapsed(value => !value)}>{collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}<span>{collapsed ? "Expand" : "Collapse sidebar"}</span></button>
           </div>
         </aside>
         <div className="app-body">
           <header className="topbar">
             <button className="menu-button" aria-label="Open navigation" aria-expanded={navOpen} onClick={() => setNavOpen(true)}><Menu size={21} /></button>
-            <div className="global-search"><Search size={17} /><input ref={searchInput} aria-label="Global search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search incidents, messages, guides..." /><kbd>Ctrl K</kbd>{searchResults.length > 0 ? <div className="search-results">{searchResults.map((result, index) => <button key={`${result.title}-${index}`} onClick={() => navigate(result.view)}><Search size={14} /><span><strong>{result.title}</strong><small>{result.detail}</small></span></button>)}</div> : null}</div>
+            <div className="global-search"><Search size={17} /><input ref={searchInput} aria-label="Global search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search cases, senders, playbooks..." /><kbd>Ctrl K</kbd>{searchResults.length > 0 ? <div className="search-results">{searchResults.map((result, index) => <button key={`${result.title}-${index}`} onClick={() => navigate(result.view)}><Search size={14} /><span><strong>{result.title}</strong><small>{result.detail}</small></span></button>)}</div> : null}</div>
             <div className="top-actions">
               <button onClick={toggleTheme} aria-label={`Switch to ${dark ? "light" : "dark"} theme`}>{dark ? <Sun size={18} /> : <Moon size={18} />}</button>
               <button aria-label="Product help" onClick={() => navigate("about")}><HelpCircle size={18} /></button>
-              <div className="notification-wrap"><button className="notification" aria-label="Notifications" onClick={() => setNotificationsOpen(value => !value)}><Bell size={18} />{unread > 0 ? <i /> : null}</button>{notificationsOpen ? <div className="notifications"><div><strong>Notifications</strong><button onClick={() => setUnread(0)}>Mark all read</button></div><button onClick={() => navigate("incidents")}><span className="alert-icon"><ShieldCheck size={15} /></span><span><strong>High-risk incident detected</strong><small>Package delivery fee required · 18 min ago</small></span></button><button onClick={() => navigate("knowledge")}><span className="info-icon"><BookOpen size={15} /></span><span><strong>New awareness guide</strong><small>AI voice impersonation defenses</small></span></button><button onClick={() => navigate("pricing")}><span className="premium-icon"><Sparkles size={15} /></span><span><strong>Premium intelligence available</strong><small>Unlock unlimited investigations</small></span></button></div> : null}</div>
+              <div className="notification-wrap"><button className="notification" aria-label="Notifications" onClick={() => setNotificationsOpen(value => !value)}><Bell size={18} />{unread > 0 ? <i /> : null}</button>{notificationsOpen ? <div className="notifications"><div><strong>Signal queue</strong><button onClick={() => setUnread(0)}>Mark all read</button></div><button onClick={() => navigate("incidents")}><span className="alert-icon"><ShieldCheck size={15} /></span><span><strong>Harbor Bank lookalike escalated</strong><small>Maya Chen assigned - 10 min ago</small></span></button><button onClick={() => navigate("knowledge")}><span className="info-icon"><BookOpen size={15} /></span><span><strong>New field note published</strong><small>Synthetic voice verification checklist</small></span></button><button onClick={() => navigate("pricing")}><span className="premium-icon"><Sparkles size={15} /></span><span><strong>Team desk controls available</strong><small>Add review roles and audit history</small></span></button></div> : null}</div>
               <button className="account-button" onClick={() => navigate("account")}>{user ? <span className="avatar">{user.name.slice(0, 2).toUpperCase()}</span> : <><UserRound size={16} /><span>Sign in</span></>}</button>
             </div>
           </header>
@@ -160,13 +160,13 @@ export function Platform() {
 
 function Reports({ onAnalyze, notify }: { onAnalyze: () => void; notify: (message: string) => void }) {
   const reports = [
-    ["INC-2026-2847", "Credential phishing", "Critical", "Today, 10:42"],
-    ["INC-2026-2846", "Delivery smishing", "High", "Today, 09:58"],
-    ["INC-2026-2844", "Malware attachment", "High", "Yesterday, 16:21"]
+    ["SP-0717-042", "Harbor Bank lookalike reset", "Critical", "Today, 10:42"],
+    ["SP-0717-039", "Roadrunner customs-fee text", "High", "Today, 09:58"],
+    ["SP-0717-029", "Northwind macro invoice", "High", "Yesterday, 16:21"]
   ];
   function downloadReport(report: string[]) {
-    downloadText(`${report[0]}-security-report.txt`, `SCAM MESSAGE EXPLAINER\nSECURITY REPORT\n\nIncident: ${report[0]}\nCategory: ${report[1]}\nThreat level: ${report[2]}\nGenerated: ${report[3]}\n\nRecommended action:\nQuarantine the message, preserve evidence, and verify the sender through an independent channel.\n\nThis report is decision support and should be reviewed by a qualified security professional for high-impact cases.`);
-    notify(`${report[0]} report downloaded.`);
+    downloadText(`${report[0]}-signalproof-briefing.txt`, `SIGNALPROOF\nCASE BRIEFING\n\nCase: ${report[0]}\nSubject: ${report[1]}\nThreat level: ${report[2]}\nGenerated: ${report[3]}\n\nRecommended action:\nHold the message, preserve evidence, and verify the sender through an independent channel.\n\nThis briefing supports triage decisions and should be reviewed by the assigned trust-and-safety owner for high-impact cases.`);
+    notify(`${report[0]} briefing downloaded.`);
   }
-  return <div className="view animate-fade-up"><div className="view-heading"><div><h1>Security reports</h1><p>Generate shareable, plain-language evidence for stakeholders.</p></div><button className="primary" onClick={onAnalyze}><FileSearch size={17} />Create report</button></div><div className="report-library">{reports.map(report => <div key={report[0]}><span className={`report-level ${report[2].toLowerCase()}`}>{report[2]}</span><div><strong>{report[1]}</strong><small>{report[0]} · {report[3]}</small></div><button className="ghost" onClick={() => downloadReport(report)}><Download size={15} />Download</button></div>)}</div><div className="report-help"><CircleHelp size={20} /><div><strong>Need a new report?</strong><p>Every completed analysis automatically produces an executive summary, technical evidence, scoring rationale, and response plan.</p></div><button className="text-button" onClick={onAnalyze}>Start analysis →</button></div></div>;
+  return <div className="view animate-fade-up"><div className="view-heading"><div><h1>Case briefings</h1><p>Export concise evidence packets for fraud, support, and operations teams.</p></div><button className="primary" onClick={onAnalyze}><FileSearch size={17} />Create briefing</button></div><div className="report-library">{reports.map(report => <div key={report[0]}><span className={`report-level ${report[2].toLowerCase()}`}>{report[2]}</span><div><strong>{report[1]}</strong><small>{report[0]} - {report[3]}</small></div><button className="ghost" onClick={() => downloadReport(report)}><Download size={15} />Download</button></div>)}</div><div className="report-help"><CircleHelp size={20} /><div><strong>Need a fresh briefing?</strong><p>Every completed triage produces an executive summary, evidence highlights, scoring rationale, and response checklist.</p></div><button className="text-button" onClick={onAnalyze}>Start triage</button></div></div>;
 }

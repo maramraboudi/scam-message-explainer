@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Scam Message Explainer",
-  description: "Understand suspicious messages, investigate risk, and respond safely.",
+  title: "SignalProof",
+  description: "Triage suspicious messages, preserve evidence, and verify sender claims safely.",
   robots: { index: false, follow: false }
 };
 

@@ -9,14 +9,14 @@ beforeEach(() => localStorage.clear());
 describe("startup product workflows", () => {
   it("navigates to the complete product guide", () => {
     render(<Platform />);
-    fireEvent.click(screen.getByRole("button", { name: "Product guide" }));
-    expect(screen.getByRole("heading", { name: "Security guidance people can actually use." })).toBeInTheDocument();
-    expect(screen.getByText("From uncertainty to action")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Method" }));
+    expect(screen.getByRole("heading", { name: "Message triage with a human audit trail." })).toBeInTheDocument();
+    expect(screen.getByText("From noisy messages to named cases")).toBeInTheDocument();
   });
 
   it("selects and persists a premium plan", () => {
     render(<Platform />);
-    fireEvent.click(screen.getByRole("button", { name: "Premium" }));
+    fireEvent.click(screen.getByRole("button", { name: "Plans" }));
     fireEvent.click(screen.getByRole("button", { name: "Choose Premium" }));
     expect(localStorage.getItem("sme-plan-v1")).toBe("Premium");
     expect(screen.getByRole("button", { name: "Current plan" })).toBeDisabled();
@@ -33,11 +33,11 @@ describe("startup product workflows", () => {
 
   it("filters incidents and toggles a bookmark", () => {
     render(<Incidents notify={vi.fn()} />);
-    fireEvent.change(screen.getByPlaceholderText(/search incidents/i), { target: { value: "delivery" } });
-    expect(screen.getByText("INC-2026-2846")).toBeInTheDocument();
-    expect(screen.queryByText("INC-2026-2847")).not.toBeInTheDocument();
-    const bookmark = screen.getByRole("button", { name: /bookmark INC-2026-2846/i });
+    fireEvent.change(screen.getByPlaceholderText(/search cases/i), { target: { value: "Roadrunner" } });
+    expect(screen.getByText("SP-0717-039")).toBeInTheDocument();
+    expect(screen.queryByText("SP-0717-042")).not.toBeInTheDocument();
+    const bookmark = screen.getByRole("button", { name: /bookmark SP-0717-039/i });
     fireEvent.click(bookmark);
-    expect(screen.getByRole("button", { name: /remove bookmark from INC-2026-2846/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /remove bookmark from SP-0717-039/i })).toBeInTheDocument();
   });
 });
